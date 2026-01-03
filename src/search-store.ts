@@ -1,13 +1,12 @@
-// import type * as rdfjs from "@rdfjs/types";
+import type * as rdfjs from "@rdfjs/types";
 
-// // TODO: Create a search store that extends the rdfjs store interface.
-// //  ID mapping of RDF terms
-
-// export class SearchStore implements rdfjs.Store {
-//   constructor(private db: Database) {}
-// }
-
-// export interface SearchStore {
-//   addQuads(quads: rdfjs.Quad[]): Promise<void>;
-//   getQuads(graph?: rdfjs.NamedNode): Promise<rdfjs.Quad[]>;
-// }
+/**
+ * SearchStore is a search store that enables efficient searching of RDF data.
+ */
+export interface SearchStore<TQuad extends rdfjs.BaseQuad = rdfjs.Quad> {
+  /**
+   * getStringLiterals returns an async iterator that yields all string
+   * literals in the store.
+   */
+  getStringLiterals(): AsyncIterable<TQuad>;
+}
