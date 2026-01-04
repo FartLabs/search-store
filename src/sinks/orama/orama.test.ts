@@ -1,51 +1,16 @@
 import { assertEquals } from "@std/assert";
 import { search } from "@orama/orama";
 import { DataFactory, Store } from "n3";
-import { createOrama, type OramaEmbedder, OramaSearchStore } from "./orama.ts";
+import { createOrama, OramaSearchStore } from "./orama.ts";
+import { FakeEmbedder } from "../../embeddings/fake.ts";
 import { N3PatchSource } from "../../sources/n3/patch-source.ts";
 import type { Patch } from "../../patch.ts";
-
-/**
- * FakeEmbedder for testing that returns a fixed-size vector.
- */
-class FakeEmbedder implements OramaEmbedder {
-  constructor(private readonly vectorSize: number) {}
-
-  embed(_text: string): Promise<number[]> {
-    return Promise.resolve(new Array(this.vectorSize).fill(0));
-  }
-}
-
-/**
- * TestEmbedder generates deterministic embeddings based on text content.
- * Different texts get different embeddings for testing search functionality.
- */
-class TestEmbedder implements OramaEmbedder {
-  constructor(private readonly vectorSize: number) {}
-
-  embed(text: string): Promise<number[]> {
-    // Generate a deterministic embedding based on text hash
-    const vector = new Array(this.vectorSize);
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-      hash = ((hash << 5) - hash) + text.charCodeAt(i);
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-
-    // Fill vector with values based on hash
-    for (let i = 0; i < this.vectorSize; i++) {
-      vector[i] = Math.sin((hash + i) * 0.1) * 0.5 + 0.5; // Normalize to [0, 1]
-    }
-
-    return Promise.resolve(vector);
-  }
-}
 
 Deno.test("OramaSearchStore as patch sink tracks patches from n3 store", async () => {
   const vectorSize = 128;
   const orama = createOrama(vectorSize);
   const embedder = new FakeEmbedder(vectorSize);
-  const searchStore = new OramaSearchStore(orama, embedder);
+  const searchStore = new OramaSearchStore(orama, vectorSize, embedder);
 
   // Create an n3 store and patch source
   const n3Store = new Store();
@@ -118,7 +83,7 @@ Deno.test("OramaSearchStore.search returns empty array for empty query", async (
   const vectorSize = 128;
   const orama = createOrama(vectorSize);
   const embedder = new FakeEmbedder(vectorSize);
-  const searchStore = new OramaSearchStore(orama, embedder);
+  const searchStore = new OramaSearchStore(orama, vectorSize, embedder);
 
   // Insert some test data
   const quad = DataFactory.quad(
@@ -140,8 +105,8 @@ Deno.test("OramaSearchStore.search returns empty array for empty query", async (
 Deno.test("OramaSearchStore.search returns RankedResult with correct format", async () => {
   const vectorSize = 128;
   const orama = createOrama(vectorSize);
-  const embedder = new TestEmbedder(vectorSize);
-  const searchStore = new OramaSearchStore(orama, embedder);
+  const embedder = new FakeEmbedder(vectorSize);
+  const searchStore = new OramaSearchStore(orama, vectorSize, embedder);
 
   // Insert test data
   const quad = DataFactory.quad(
@@ -166,8 +131,8 @@ Deno.test("OramaSearchStore.search returns RankedResult with correct format", as
 Deno.test("OramaSearchStore.search returns results with correct ranking", async () => {
   const vectorSize = 128;
   const orama = createOrama(vectorSize);
-  const embedder = new TestEmbedder(vectorSize);
-  const searchStore = new OramaSearchStore(orama, embedder);
+  const embedder = new FakeEmbedder(vectorSize);
+  const searchStore = new OramaSearchStore(orama, vectorSize, embedder);
 
   // Insert multiple test documents
   const quads = [
@@ -206,8 +171,8 @@ Deno.test("OramaSearchStore.search returns results with correct ranking", async 
 Deno.test("OramaSearchStore.search respects limit parameter", async () => {
   const vectorSize = 128;
   const orama = createOrama(vectorSize);
-  const embedder = new TestEmbedder(vectorSize);
-  const searchStore = new OramaSearchStore(orama, embedder);
+  const embedder = new FakeEmbedder(vectorSize);
+  const searchStore = new OramaSearchStore(orama, vectorSize, embedder);
 
   // Insert multiple test documents
   const quads = [
@@ -254,8 +219,8 @@ Deno.test("OramaSearchStore.search respects limit parameter", async () => {
 Deno.test("OramaSearchStore.search performs hybrid search combining text and vector", async () => {
   const vectorSize = 128;
   const orama = createOrama(vectorSize);
-  const embedder = new TestEmbedder(vectorSize);
-  const searchStore = new OramaSearchStore(orama, embedder);
+  const embedder = new FakeEmbedder(vectorSize);
+  const searchStore = new OramaSearchStore(orama, vectorSize, embedder);
 
   // Insert test documents with different content
   const quads = [
@@ -294,8 +259,8 @@ Deno.test("OramaSearchStore.search performs hybrid search combining text and vec
 Deno.test("OramaSearchStore.search returns empty array when no matches found", async () => {
   const vectorSize = 128;
   const orama = createOrama(vectorSize);
-  const embedder = new TestEmbedder(vectorSize);
-  const searchStore = new OramaSearchStore(orama, embedder);
+  const embedder = new FakeEmbedder(vectorSize);
+  const searchStore = new OramaSearchStore(orama, vectorSize, embedder);
 
   // Insert test data
   const quad = DataFactory.quad(
