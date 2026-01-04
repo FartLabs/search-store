@@ -1,10 +1,9 @@
 import { assert, assertEquals } from "@std/assert";
 import { DataFactory, Store } from "n3";
 import type * as rdfjs from "@rdfjs/types";
-import type { Patch } from "../../patch.ts";
 import { N3PatchSource } from "./patch-source.ts";
 
-Deno.test("N3PatchSource.pull includes language-tagged literals (rdf:langString)", async () => {
+Deno.test("N3PatchSource.getQuads includes language-tagged literals (rdf:langString)", async () => {
   const store = new Store();
   const source = new N3PatchSource(store);
 
@@ -16,18 +15,16 @@ Deno.test("N3PatchSource.pull includes language-tagged literals (rdf:langString)
   );
   await store.addQuad(quad);
 
-  const patches = [];
-  for await (const patch of source.pull()) {
-    patches.push(patch);
+  const quads: rdfjs.Quad[] = [];
+  for await (const q of source.getQuads()) {
+    quads.push(q);
   }
 
-  assertEquals(patches.length, 1);
-  assertEquals(patches[0].insertions.length, 1);
-  assertEquals(patches[0].insertions[0], quad);
-  assertEquals(patches[0].deletions.length, 0);
+  assertEquals(quads.length, 1);
+  assertEquals(quads[0], quad);
 });
 
-Deno.test("N3PatchSource.pull includes plain literals (no datatype)", async () => {
+Deno.test("N3PatchSource.getQuads includes plain literals (no datatype)", async () => {
   const store = new Store();
   const source = new N3PatchSource(store);
 
@@ -39,17 +36,16 @@ Deno.test("N3PatchSource.pull includes plain literals (no datatype)", async () =
   );
   await store.addQuad(quad);
 
-  const patches = [];
-  for await (const patch of source.pull()) {
-    patches.push(patch);
+  const quads: rdfjs.Quad[] = [];
+  for await (const q of source.getQuads()) {
+    quads.push(q);
   }
 
-  assertEquals(patches.length, 1);
-  assertEquals(patches[0].insertions.length, 1);
-  assertEquals(patches[0].insertions[0], quad);
+  assertEquals(quads.length, 1);
+  assertEquals(quads[0], quad);
 });
 
-Deno.test("N3PatchSource.pull includes typed string literals (xsd:string)", async () => {
+Deno.test("N3PatchSource.getQuads includes typed string literals (xsd:string)", async () => {
   const store = new Store();
   const source = new N3PatchSource(store);
 
@@ -64,17 +60,16 @@ Deno.test("N3PatchSource.pull includes typed string literals (xsd:string)", asyn
   );
   await store.addQuad(quad);
 
-  const patches = [];
-  for await (const patch of source.pull()) {
-    patches.push(patch);
+  const quads: rdfjs.Quad[] = [];
+  for await (const q of source.getQuads()) {
+    quads.push(q);
   }
 
-  assertEquals(patches.length, 1);
-  assertEquals(patches[0].insertions.length, 1);
-  assertEquals(patches[0].insertions[0], quad);
+  assertEquals(quads.length, 1);
+  assertEquals(quads[0], quad);
 });
 
-Deno.test("N3PatchSource.pull excludes non-string typed literals (xsd:integer)", async () => {
+Deno.test("N3PatchSource.getQuads excludes non-string typed literals (xsd:integer)", async () => {
   const store = new Store();
   const source = new N3PatchSource(store);
 
@@ -89,16 +84,15 @@ Deno.test("N3PatchSource.pull excludes non-string typed literals (xsd:integer)",
   );
   await store.addQuad(quad);
 
-  const patches = [];
-  for await (const patch of source.pull()) {
-    patches.push(patch);
+  const quads: rdfjs.Quad[] = [];
+  for await (const q of source.getQuads()) {
+    quads.push(q);
   }
 
-  assertEquals(patches.length, 1);
-  assertEquals(patches[0].insertions.length, 0);
+  assertEquals(quads.length, 0);
 });
 
-Deno.test("N3PatchSource.pull excludes non-string typed literals (xsd:boolean)", async () => {
+Deno.test("N3PatchSource.getQuads excludes non-string typed literals (xsd:boolean)", async () => {
   const store = new Store();
   const source = new N3PatchSource(store);
 
@@ -113,16 +107,15 @@ Deno.test("N3PatchSource.pull excludes non-string typed literals (xsd:boolean)",
   );
   await store.addQuad(quad);
 
-  const patches = [];
-  for await (const patch of source.pull()) {
-    patches.push(patch);
+  const quads: rdfjs.Quad[] = [];
+  for await (const q of source.getQuads()) {
+    quads.push(q);
   }
 
-  assertEquals(patches.length, 1);
-  assertEquals(patches[0].insertions.length, 0);
+  assertEquals(quads.length, 0);
 });
 
-Deno.test("N3PatchSource.pull excludes non-literal objects (NamedNode)", async () => {
+Deno.test("N3PatchSource.getQuads excludes non-literal objects (NamedNode)", async () => {
   const store = new Store();
   const source = new N3PatchSource(store);
 
@@ -134,16 +127,15 @@ Deno.test("N3PatchSource.pull excludes non-literal objects (NamedNode)", async (
   );
   await store.addQuad(quad);
 
-  const patches = [];
-  for await (const patch of source.pull()) {
-    patches.push(patch);
+  const quads: rdfjs.Quad[] = [];
+  for await (const q of source.getQuads()) {
+    quads.push(q);
   }
 
-  assertEquals(patches.length, 1);
-  assertEquals(patches[0].insertions.length, 0);
+  assertEquals(quads.length, 0);
 });
 
-Deno.test("N3PatchSource.pull excludes non-literal objects (BlankNode)", async () => {
+Deno.test("N3PatchSource.getQuads excludes non-literal objects (BlankNode)", async () => {
   const store = new Store();
   const source = new N3PatchSource(store);
 
@@ -155,16 +147,15 @@ Deno.test("N3PatchSource.pull excludes non-literal objects (BlankNode)", async (
   );
   await store.addQuad(quad);
 
-  const patches = [];
-  for await (const patch of source.pull()) {
-    patches.push(patch);
+  const quads: rdfjs.Quad[] = [];
+  for await (const q of source.getQuads()) {
+    quads.push(q);
   }
 
-  assertEquals(patches.length, 1);
-  assertEquals(patches[0].insertions.length, 0);
+  assertEquals(quads.length, 0);
 });
 
-Deno.test("N3PatchSource.pull filters mixed quads correctly", async () => {
+Deno.test("N3PatchSource.getQuads filters mixed quads correctly", async () => {
   const store = new Store();
   const source = new N3PatchSource(store);
 
@@ -207,13 +198,12 @@ Deno.test("N3PatchSource.pull filters mixed quads correctly", async () => {
   await store.addQuad(integerQuad);
   await store.addQuad(namedNodeQuad);
 
-  const patches: Patch[] = [];
-  for await (const patch of source.pull()) {
-    patches.push(patch);
+  const quads: rdfjs.Quad[] = [];
+  for await (const q of source.getQuads()) {
+    quads.push(q);
   }
 
-  assertEquals(patches.length, 1);
-  assertEquals(patches[0].insertions.length, 3);
+  assertEquals(quads.length, 3);
 
   // Helper to check if a quad matches by comparing its object value
   const hasQuadWithObject = (quads: rdfjs.Quad[], expectedObject: string) => {
@@ -223,16 +213,14 @@ Deno.test("N3PatchSource.pull filters mixed quads correctly", async () => {
   };
 
   // Verify all three string quads are included by checking their object values
-  assert(hasQuadWithObject(patches[0].insertions, "Hello"));
-  assert(hasQuadWithObject(patches[0].insertions, "World"));
-  assert(hasQuadWithObject(patches[0].insertions, "Test"));
+  assert(hasQuadWithObject(quads, "Hello"));
+  assert(hasQuadWithObject(quads, "World"));
+  assert(hasQuadWithObject(quads, "Test"));
 
   // Verify non-string quads are excluded
-  assert(!hasQuadWithObject(patches[0].insertions, "42"));
+  assert(!hasQuadWithObject(quads, "42"));
   // Check that no quads have NamedNode objects
   assert(
-    !patches[0].insertions.some((q: rdfjs.Quad) =>
-      q.object.termType === "NamedNode"
-    ),
+    !quads.some((q: rdfjs.Quad) => q.object.termType === "NamedNode"),
   );
 });

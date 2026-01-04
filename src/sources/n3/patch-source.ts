@@ -1,11 +1,12 @@
 import { Store } from "n3";
-import type { Patch, PatchSink, PatchSource } from "../../patch.ts";
+import type * as rdfjs from "@rdfjs/types";
+import type { Patch, PatchSink, PatchSource, QuadSource } from "../../patch.ts";
 import { createN3Proxy } from "./proxy.ts";
 
 /**
  * N3PatchSource is a source that produces patches from an N3 store.
  */
-export class N3PatchSource implements PatchSource, PatchSink {
+export class N3PatchSource implements PatchSource, PatchSink, QuadSource {
   public readonly store: Store;
   private readonly subscribers = new Map<
     (patch: Patch) => void | Promise<void>,
@@ -73,8 +74,8 @@ export class N3PatchSource implements PatchSource, PatchSink {
     };
   }
 
-  public async *pull(): AsyncIterable<Patch> {
-    const insertions = this.store
+  public async *getQuads(): AsyncIterable<rdfjs.Quad> {
+    const quads = this.store
       .getQuads(null, null, null, null)
       .filter((quad) => {
         if (quad.object.termType !== "Literal") {
@@ -89,9 +90,6 @@ export class N3PatchSource implements PatchSource, PatchSink {
         );
       });
 
-    yield {
-      insertions,
-      deletions: [],
-    };
+    yield* quads;
   }
 }

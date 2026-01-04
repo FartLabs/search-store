@@ -28,15 +28,19 @@ export interface PatchSink {
 }
 
 /**
+ * QuadSource is a source that can provide quads.
+ */
+export interface QuadSource {
+  /**
+   * getQuads returns the complete state of the source as an AsyncIterable of quads.
+   */
+  getQuads(): AsyncIterable<rdfjs.Quad>;
+}
+
+/**
  * PatchSource is a source that produces patches.
  */
 export interface PatchSource {
-  /**
-   * pull returns the complete state of the source as an AsyncIterable of
-   * insertion patches.
-   */
-  pull(): AsyncIterable<Patch>;
-
   /**
    * subscribe subscribes to a stream of patches.
    *
