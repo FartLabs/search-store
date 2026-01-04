@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { DataFactory, Store } from "n3";
-import type { Patch } from "../patch.ts";
+import type { Patch } from "../../patch.ts";
 import { createN3Proxy } from "./proxy.ts";
 
 Deno.test("createN3Proxy notifies subscribers when addQuad is called", () => {

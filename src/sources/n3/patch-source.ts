@@ -1,5 +1,5 @@
 import { Store } from "n3";
-import type { Patch, PatchSink, PatchSource } from "../patch.ts";
+import type { Patch, PatchSink, PatchSource } from "../../patch.ts";
 import { createN3Proxy } from "./proxy.ts";
 
 /**

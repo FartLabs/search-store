@@ -2,7 +2,8 @@ import { assertEquals } from "@std/assert";
 import { search } from "@orama/orama";
 import { DataFactory, Store } from "n3";
 import { createOrama, type OramaEmbedder, OramaSearchStore } from "./orama.ts";
-import { N3PatchSource } from "../n3/patch-source.ts";
+import { N3PatchSource } from "../../sources/n3/patch-source.ts";
+import type { Patch } from "../../patch.ts";
 
 /**
  * FakeEmbedder for testing that returns a fixed-size vector.
@@ -27,7 +28,7 @@ Deno.test("OramaSearchStore as patch sink tracks patches from n3 store", async (
 
   // Collect patches from the n3 store
   const patchCounts: Array<{ insertions: number; deletions: number }> = [];
-  const unsubscribe = patchSource.subscribe(async (patch) => {
+  const unsubscribe = patchSource.subscribe(async (patch: Patch) => {
     patchCounts.push({
       insertions: patch.insertions.length,
       deletions: patch.deletions.length,

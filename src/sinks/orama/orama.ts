@@ -1,8 +1,8 @@
 import type * as rdfjs from "@rdfjs/types";
 import { create, insertMultiple, removeMultiple } from "@orama/orama";
-import type { RankedResult, SearchStore } from "../search-store.ts";
-import type { Patch, PatchSink } from "../patch.ts";
-import { skolemizeQuad } from "../skolem.ts";
+import type { RankedResult, SearchStore } from "../../search-store.ts";
+import type { Patch, PatchSink } from "../../patch.ts";
+import { skolemizeQuad } from "../../skolem.ts";
 
 /**
  * Orama is the type of our Orama instance.

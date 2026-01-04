@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { DataFactory, Store } from "n3";
 import type * as rdfjs from "@rdfjs/types";
-import type { Patch } from "../patch.ts";
+import type { Patch } from "../../patch.ts";
 import { N3PatchSource } from "./patch-source.ts";
 
 Deno.test("N3PatchSource.pull includes language-tagged literals (rdf:langString)", async () => {
@@ -230,5 +230,9 @@ Deno.test("N3PatchSource.pull filters mixed quads correctly", async () => {
   // Verify non-string quads are excluded
   assert(!hasQuadWithObject(patches[0].insertions, "42"));
   // Check that no quads have NamedNode objects
-  assert(!patches[0].insertions.some((q) => q.object.termType === "NamedNode"));
+  assert(
+    !patches[0].insertions.some((q: rdfjs.Quad) =>
+      q.object.termType === "NamedNode"
+    ),
+  );
 });

@@ -1,6 +1,6 @@
 import { Store } from "n3";
 import type * as rdfjs from "@rdfjs/types";
-import type { PatchSink } from "../patch.ts";
+import type { PatchSink } from "../../patch.ts";
 
 /**
  * createN3Proxy wraps a Store with a proxy that listens to changes and
