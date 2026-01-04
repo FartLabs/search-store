@@ -22,9 +22,9 @@ export interface Patch {
  */
 export interface PatchSink {
   /**
-   * applyPatches applies an AsyncIterable of patches to the sink.
+   * patch applies an AsyncIterable of patches to the sink.
    */
-  applyPatches(patches: AsyncIterable<Patch>): Promise<void>;
+  patch(patches: AsyncIterable<Patch>): Promise<void>;
 }
 
 /**
@@ -32,14 +32,15 @@ export interface PatchSink {
  */
 export interface PatchSource {
   /**
-   * diff returns an AsyncIterable of patches.
+   * pull returns the complete state of the source as an AsyncIterable of
+   * insertion patches.
    */
-  diff(): AsyncIterable<Patch>;
+  pull(): AsyncIterable<Patch>;
 
   /**
    * subscribe subscribes to a stream of patches.
    *
    * @returns A function to unsubscribe.
    */
-  subscribe(callback: (patch: Patch) => void): () => void;
+  subscribe(fn: (patch: Patch) => void): () => void;
 }
