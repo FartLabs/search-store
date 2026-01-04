@@ -13,6 +13,7 @@ export class N3PatchSource implements PatchSource, PatchSink {
   >();
   private patchQueue: Array<{ patch: Patch; resolve: () => void }> = [];
   private processing = Promise.resolve();
+  private isProcessing = false;
 
   public constructor(store: Store) {
     this.store = createN3Proxy(store, this);
@@ -30,6 +31,12 @@ export class N3PatchSource implements PatchSource, PatchSink {
   }
 
   private processQueue(): void {
+    // Skip if processing is already scheduled
+    if (this.isProcessing) {
+      return;
+    }
+
+    this.isProcessing = true;
     this.processing = this.processing.then(async () => {
       while (this.patchQueue.length > 0) {
         const { patch, resolve } = this.patchQueue.shift()!;
@@ -47,6 +54,13 @@ export class N3PatchSource implements PatchSource, PatchSink {
 
         await Promise.all(promises);
         resolve();
+      }
+      this.isProcessing = false;
+
+      // Check if new patches arrived while we were processing
+      // (can happen if a patch arrives after the while loop exits but before isProcessing is reset)
+      if (this.patchQueue.length > 0) {
+        this.processQueue();
       }
     });
   }
