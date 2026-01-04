@@ -1,5 +1,5 @@
 import type * as rdfjs from "@rdfjs/types";
-import { create } from "@orama/orama";
+import { create, insertMultiple, removeMultiple } from "@orama/orama";
 import type { RankedResult, SearchStore } from "../search-store.ts";
 import type { Patch, PatchSink } from "../patch.ts";
 import { skolemizeQuad } from "../skolem.ts";
@@ -41,18 +41,6 @@ export class OramaSearchStore implements SearchStore, PatchSink {
     private readonly embedder: OramaEmbedder,
   ) {}
 
-  public async patch(patches: AsyncIterable<Patch>): Promise<void> {
-    for await (const patch of patches) {
-      for (const deletion of patch.deletions) {
-        const documentId = await skolemizeQuad(deletion);
-      }
-
-      for (const insertion of patch.insertions) {
-        const documentId = await skolemizeQuad(insertion);
-      }
-    }
-  }
-
   /**
    * @see https://docs.orama.com/docs/orama-js/search/hybrid-search#performing-hybrid-search
    */
@@ -61,5 +49,39 @@ export class OramaSearchStore implements SearchStore, PatchSink {
     limit?: number,
   ): Promise<RankedResult<rdfjs.NamedNode>[]> {
     throw new Error("Method not implemented.");
+  }
+
+  public async patch(patches: AsyncIterable<Patch>): Promise<void> {
+    for await (const patch of patches) {
+      await this.applyDeletions(patch.deletions);
+      await this.applyInsertions(patch.insertions);
+    }
+  }
+
+  private async applyDeletions(deletions: rdfjs.Quad[]): Promise<void> {
+    const deletedDocumentIds = await Promise.all(
+      deletions.map((deletion) => skolemizeQuad(deletion)),
+    );
+
+    await removeMultiple(this.orama, deletedDocumentIds);
+  }
+
+  private async applyInsertions(insertions: rdfjs.Quad[]): Promise<void> {
+    const insertedDocuments = await Promise.all(
+      insertions.map(async (insertion) => {
+        const documentId = await skolemizeQuad(insertion);
+        const embedding = await this.embedder.embed(insertion.object.value);
+        return {
+          id: documentId,
+          subject: insertion.subject.value,
+          predicate: insertion.predicate.value,
+          object: insertion.object.value,
+          graph: insertion.graph?.value ?? "",
+          embedding,
+        };
+      }),
+    );
+
+    await insertMultiple(this.orama, insertedDocuments);
   }
 }

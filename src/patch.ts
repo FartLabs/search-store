@@ -44,3 +44,14 @@ export interface PatchSource {
    */
   subscribe(fn: (patch: Patch) => void): () => void;
 }
+
+/**
+ * PatchEmitter is an object that can emit patches sequentially.
+ */
+export interface PatchEmitter {
+  /**
+   * emit processes a patch and returns a promise that resolves when
+   * the patch has been processed.
+   */
+  emit(patch: Patch): Promise<void>;
+}

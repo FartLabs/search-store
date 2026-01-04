@@ -1,6 +1,6 @@
 import { Store } from "n3";
 import type * as rdfjs from "@rdfjs/types";
-import type { Patch } from "../patch.ts";
+import type { Patch, PatchEmitter } from "../patch.ts";
 
 /**
  * createN3Proxy wraps a Store with a proxy that listens to changes and
@@ -8,10 +8,11 @@ import type { Patch } from "../patch.ts";
  */
 export function createN3Proxy(
   store: Store,
-  subscribers: Set<(patch: Patch) => void>,
+  patchSource: PatchEmitter,
 ): Store {
   function emit(patch: Patch) {
-    subscribers.forEach((subscriber) => subscriber(patch));
+    // Fire and forget - promise chain in patchSource ensures sequential processing
+    patchSource.emit(patch);
   }
 
   return new Proxy(store, {

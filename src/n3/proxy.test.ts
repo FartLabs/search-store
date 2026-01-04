@@ -6,10 +6,14 @@ import { createN3Proxy } from "./proxy.ts";
 Deno.test("createN3Proxy notifies subscribers when addQuad is called", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const subscribers = new Set<(patch: Patch) => void>();
-  subscribers.add((patch) => patches.push(patch));
+  const patchSource = {
+    emit(patch: Patch): Promise<void> {
+      patches.push(patch);
+      return Promise.resolve();
+    },
+  };
 
-  const proxiedStore = createN3Proxy(store, subscribers);
+  const proxiedStore = createN3Proxy(store, patchSource);
 
   const quad = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s"),
@@ -29,10 +33,14 @@ Deno.test("createN3Proxy notifies subscribers when addQuad is called", () => {
 Deno.test("createN3Proxy notifies subscribers when addQuads is called", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const subscribers = new Set<(patch: Patch) => void>();
-  subscribers.add((patch) => patches.push(patch));
+  const patchSource = {
+    emit(patch: Patch): Promise<void> {
+      patches.push(patch);
+      return Promise.resolve();
+    },
+  };
 
-  const proxiedStore = createN3Proxy(store, subscribers);
+  const proxiedStore = createN3Proxy(store, patchSource);
 
   const quad1 = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s1"),
@@ -58,10 +66,14 @@ Deno.test("createN3Proxy notifies subscribers when addQuads is called", () => {
 Deno.test("createN3Proxy notifies subscribers when removeQuad is called", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const subscribers = new Set<(patch: Patch) => void>();
-  subscribers.add((patch) => patches.push(patch));
+  const patchSource = {
+    emit(patch: Patch): Promise<void> {
+      patches.push(patch);
+      return Promise.resolve();
+    },
+  };
 
-  const proxiedStore = createN3Proxy(store, subscribers);
+  const proxiedStore = createN3Proxy(store, patchSource);
 
   const quad = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s"),
@@ -84,10 +96,14 @@ Deno.test("createN3Proxy notifies subscribers when removeQuad is called", () => 
 Deno.test("createN3Proxy notifies subscribers when removeQuads is called", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const subscribers = new Set<(patch: Patch) => void>();
-  subscribers.add((patch) => patches.push(patch));
+  const patchSource = {
+    emit(patch: Patch): Promise<void> {
+      patches.push(patch);
+      return Promise.resolve();
+    },
+  };
 
-  const proxiedStore = createN3Proxy(store, subscribers);
+  const proxiedStore = createN3Proxy(store, patchSource);
 
   const quad1 = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s1"),
@@ -117,11 +133,15 @@ Deno.test("createN3Proxy notifies all subscribers", () => {
   const store = new Store();
   const patches1: Patch[] = [];
   const patches2: Patch[] = [];
-  const subscribers = new Set<(patch: Patch) => void>();
-  subscribers.add((patch) => patches1.push(patch));
-  subscribers.add((patch) => patches2.push(patch));
+  const patchSource = {
+    emit(patch: Patch): Promise<void> {
+      patches1.push(patch);
+      patches2.push(patch);
+      return Promise.resolve();
+    },
+  };
 
-  const proxiedStore = createN3Proxy(store, subscribers);
+  const proxiedStore = createN3Proxy(store, patchSource);
 
   const quad = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s"),
@@ -140,10 +160,14 @@ Deno.test("createN3Proxy notifies all subscribers", () => {
 Deno.test("createN3Proxy forwards non-mutating methods correctly", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const subscribers = new Set<(patch: Patch) => void>();
-  subscribers.add((patch) => patches.push(patch));
+  const patchSource = {
+    emit(patch: Patch): Promise<void> {
+      patches.push(patch);
+      return Promise.resolve();
+    },
+  };
 
-  const proxiedStore = createN3Proxy(store, subscribers);
+  const proxiedStore = createN3Proxy(store, patchSource);
 
   const quad = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s"),
