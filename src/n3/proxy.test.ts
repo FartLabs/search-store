@@ -6,14 +6,14 @@ import { createN3Proxy } from "./proxy.ts";
 Deno.test("createN3Proxy notifies subscribers when addQuad is called", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const patchSource = {
-    emit(patch: Patch): Promise<void> {
+  const patchSink = {
+    patch(patch: Patch): Promise<void> {
       patches.push(patch);
       return Promise.resolve();
     },
   };
 
-  const proxiedStore = createN3Proxy(store, patchSource);
+  const proxiedStore = createN3Proxy(store, patchSink);
 
   const quad = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s"),
@@ -33,14 +33,14 @@ Deno.test("createN3Proxy notifies subscribers when addQuad is called", () => {
 Deno.test("createN3Proxy notifies subscribers when addQuads is called", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const patchSource = {
-    emit(patch: Patch): Promise<void> {
+  const patchSink = {
+    patch(patch: Patch): Promise<void> {
       patches.push(patch);
       return Promise.resolve();
     },
   };
 
-  const proxiedStore = createN3Proxy(store, patchSource);
+  const proxiedStore = createN3Proxy(store, patchSink);
 
   const quad1 = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s1"),
@@ -66,14 +66,14 @@ Deno.test("createN3Proxy notifies subscribers when addQuads is called", () => {
 Deno.test("createN3Proxy notifies subscribers when removeQuad is called", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const patchSource = {
-    emit(patch: Patch): Promise<void> {
+  const patchSink = {
+    patch(patch: Patch): Promise<void> {
       patches.push(patch);
       return Promise.resolve();
     },
   };
 
-  const proxiedStore = createN3Proxy(store, patchSource);
+  const proxiedStore = createN3Proxy(store, patchSink);
 
   const quad = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s"),
@@ -96,14 +96,14 @@ Deno.test("createN3Proxy notifies subscribers when removeQuad is called", () => 
 Deno.test("createN3Proxy notifies subscribers when removeQuads is called", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const patchSource = {
-    emit(patch: Patch): Promise<void> {
+  const patchSink = {
+    patch(patch: Patch): Promise<void> {
       patches.push(patch);
       return Promise.resolve();
     },
   };
 
-  const proxiedStore = createN3Proxy(store, patchSource);
+  const proxiedStore = createN3Proxy(store, patchSink);
 
   const quad1 = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s1"),
@@ -133,15 +133,15 @@ Deno.test("createN3Proxy notifies all subscribers", () => {
   const store = new Store();
   const patches1: Patch[] = [];
   const patches2: Patch[] = [];
-  const patchSource = {
-    emit(patch: Patch): Promise<void> {
+  const patchSink = {
+    patch(patch: Patch): Promise<void> {
       patches1.push(patch);
       patches2.push(patch);
       return Promise.resolve();
     },
   };
 
-  const proxiedStore = createN3Proxy(store, patchSource);
+  const proxiedStore = createN3Proxy(store, patchSink);
 
   const quad = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s"),
@@ -160,14 +160,14 @@ Deno.test("createN3Proxy notifies all subscribers", () => {
 Deno.test("createN3Proxy forwards non-mutating methods correctly", () => {
   const store = new Store();
   const patches: Patch[] = [];
-  const patchSource = {
-    emit(patch: Patch): Promise<void> {
+  const patchSink = {
+    patch(patch: Patch): Promise<void> {
       patches.push(patch);
       return Promise.resolve();
     },
   };
 
-  const proxiedStore = createN3Proxy(store, patchSource);
+  const proxiedStore = createN3Proxy(store, patchSink);
 
   const quad = DataFactory.quad(
     DataFactory.namedNode("https://example.org/s"),

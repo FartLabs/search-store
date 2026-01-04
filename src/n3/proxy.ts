@@ -1,6 +1,6 @@
 import { Store } from "n3";
 import type * as rdfjs from "@rdfjs/types";
-import type { Patch, PatchEmitter } from "../patch.ts";
+import type { PatchSink } from "../patch.ts";
 
 /**
  * createN3Proxy wraps a Store with a proxy that listens to changes and
@@ -8,13 +8,8 @@ import type { Patch, PatchEmitter } from "../patch.ts";
  */
 export function createN3Proxy(
   store: Store,
-  patchSource: PatchEmitter,
+  patchSink: PatchSink,
 ): Store {
-  function emit(patch: Patch) {
-    // Fire and forget - promise chain in patchSource ensures sequential processing
-    patchSource.emit(patch);
-  }
-
   return new Proxy(store, {
     get(target, prop, _receiver) {
       // Intercept methods that modify the store
@@ -22,7 +17,8 @@ export function createN3Proxy(
         case "addQuad": {
           return (quad: rdfjs.Quad) => {
             const result = target[prop](quad);
-            emit({
+            // Fire and forget - promise chain in patchSink ensures sequential processing
+            patchSink.patch({
               insertions: [quad],
               deletions: [],
             });
@@ -35,7 +31,8 @@ export function createN3Proxy(
           return (quads: rdfjs.Quad[] | rdfjs.Dataset) => {
             const result = target[prop](quads as rdfjs.Quad[]);
             const insertions = Array.isArray(quads) ? quads : Array.from(quads);
-            emit({
+            // Fire and forget - promise chain in patchSink ensures sequential processing
+            patchSink.patch({
               insertions,
               deletions: [],
             });
@@ -47,7 +44,8 @@ export function createN3Proxy(
         case "removeQuad": {
           return (quad: rdfjs.Quad) => {
             const result = target[prop](quad);
-            emit({
+            // Fire and forget - promise chain in patchSink ensures sequential processing
+            patchSink.patch({
               insertions: [],
               deletions: [quad],
             });
@@ -59,7 +57,8 @@ export function createN3Proxy(
         case "removeQuads": {
           return (quads: rdfjs.Quad[]) => {
             const result = target[prop](quads);
-            emit({
+            // Fire and forget - promise chain in patchSink ensures sequential processing
+            patchSink.patch({
               insertions: [],
               deletions: [...quads],
             });

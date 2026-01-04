@@ -51,11 +51,9 @@ export class OramaSearchStore implements SearchStore, PatchSink {
     throw new Error("Method not implemented.");
   }
 
-  public async patch(patches: AsyncIterable<Patch>): Promise<void> {
-    for await (const patch of patches) {
-      await this.applyDeletions(patch.deletions);
-      await this.applyInsertions(patch.insertions);
-    }
+  public async patch(patch: Patch): Promise<void> {
+    await this.applyDeletions(patch.deletions);
+    await this.applyInsertions(patch.insertions);
   }
 
   private async applyDeletions(deletions: rdfjs.Quad[]): Promise<void> {

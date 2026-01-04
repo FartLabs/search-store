@@ -22,9 +22,9 @@ export interface Patch {
  */
 export interface PatchSink {
   /**
-   * patch applies an AsyncIterable of patches to the sink.
+   * patch applies a patch to the sink.
    */
-  patch(patches: AsyncIterable<Patch>): Promise<void>;
+  patch(patch: Patch): Promise<void>;
 }
 
 /**
@@ -43,15 +43,4 @@ export interface PatchSource {
    * @returns A function to unsubscribe.
    */
   subscribe(fn: (patch: Patch) => void): () => void;
-}
-
-/**
- * PatchEmitter is an object that can emit patches sequentially.
- */
-export interface PatchEmitter {
-  /**
-   * emit processes a patch and returns a promise that resolves when
-   * the patch has been processed.
-   */
-  emit(patch: Patch): Promise<void>;
 }
