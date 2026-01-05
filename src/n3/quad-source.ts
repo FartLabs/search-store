@@ -1,6 +1,6 @@
 import { Store } from "n3";
 import type * as rdfjs from "@rdfjs/types";
-import type { QuadSource } from "../../types/patch.ts";
+import type { QuadSource } from "#/rdf-patch/quad-source.ts";
 
 /**
  * N3QuadSource is a source that provides quads from an N3 store.

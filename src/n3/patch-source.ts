@@ -1,25 +1,26 @@
 import { Store } from "n3";
-import type * as rdfjs from "@rdfjs/types";
-import type {
-  Patch,
-  PatchSink,
-  PatchSource,
-  QuadSource,
-} from "../../types/patch.ts";
+import type { Patch, PatchSink, PatchSource } from "#/rdf-patch/rdf-patch.ts";
 import { createN3Proxy } from "./proxy.ts";
+
+/**
+ * PatchQueueItem is an item in the patch queue.
+ */
+interface PatchQueueItem {
+  patch: Patch;
+  resolve: () => void;
+}
 
 /**
  * N3PatchSource is a source that produces patches from an N3 store.
  */
-export class N3PatchSource implements PatchSource, PatchSink, QuadSource {
+export class N3PatchSource implements PatchSource, PatchSink {
   public readonly store: Store;
+  private processing = Promise.resolve();
+  private patchQueue: Array<PatchQueueItem> = [];
   private readonly subscribers = new Map<
     (patch: Patch) => void | Promise<void>,
     Promise<void>
   >();
-  private patchQueue: Array<{ patch: Patch; resolve: () => void }> = [];
-  private processing = Promise.resolve();
-  private isProcessing = false;
 
   public constructor(store: Store) {
     this.store = createN3Proxy(store, this);
@@ -37,12 +38,6 @@ export class N3PatchSource implements PatchSource, PatchSink, QuadSource {
   }
 
   private processQueue(): void {
-    // Skip if processing is already scheduled
-    if (this.isProcessing) {
-      return;
-    }
-
-    this.isProcessing = true;
     this.processing = this.processing.then(async () => {
       while (this.patchQueue.length > 0) {
         const { patch, resolve } = this.patchQueue.shift()!;
@@ -61,10 +56,8 @@ export class N3PatchSource implements PatchSource, PatchSink, QuadSource {
         await Promise.all(promises);
         resolve();
       }
-      this.isProcessing = false;
 
       // Check if new patches arrived while we were processing
-      // (can happen if a patch arrives after the while loop exits but before isProcessing is reset)
       if (this.patchQueue.length > 0) {
         this.processQueue();
       }
@@ -77,24 +70,5 @@ export class N3PatchSource implements PatchSource, PatchSink, QuadSource {
     return () => {
       this.subscribers.delete(fn);
     };
-  }
-
-  public async *getQuads(): AsyncIterable<rdfjs.Quad> {
-    const quads = this.store
-      .getQuads(null, null, null, null)
-      .filter((quad) => {
-        if (quad.object.termType !== "Literal") {
-          return false;
-        }
-
-        return (
-          quad.object.language ||
-          (!quad.object.datatype ||
-            quad.object.datatype.value ===
-              "http://www.w3.org/2001/XMLSchema#string")
-        );
-      });
-
-    yield* quads;
   }
 }

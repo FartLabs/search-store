@@ -1,6 +1,6 @@
 import { Store } from "n3";
 import type * as rdfjs from "@rdfjs/types";
-import type { PatchSink } from "../../types/patch.ts";
+import type { PatchSink } from "#/rdf-patch/rdf-patch.ts";
 
 /**
  * createN3Proxy wraps a Store with a proxy that listens to changes and
@@ -60,7 +60,7 @@ export function createN3Proxy(
             // Fire and forget - promise chain in patchSink ensures sequential processing
             patchSink.patch({
               insertions: [],
-              deletions: [...quads],
+              deletions: quads,
             });
 
             return result;

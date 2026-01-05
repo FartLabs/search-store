@@ -2,9 +2,9 @@ import { assertEquals } from "@std/assert";
 import { search } from "@orama/orama";
 import { DataFactory, Store } from "n3";
 import { createOrama, OramaSearchStore } from "./orama.ts";
-import { FakeEmbedder } from "../../embeddings/testing/fake.ts";
-import { N3PatchSource } from "../../sources/n3/patch-source.ts";
-import type { Patch } from "../../types/patch.ts";
+import { FakeEmbedder } from "#/embeddings/fake.ts";
+import { N3PatchSource } from "#/n3/patch-source.ts";
+import type { Patch } from "#/rdf-patch/rdf-patch.ts";
 
 Deno.test("OramaSearchStore as patch sink tracks patches from n3 store", async () => {
   const vectorSize = 128;

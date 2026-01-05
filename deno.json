@@ -9,6 +9,7 @@
     }
   },
   "imports": {
+    "#/": "./src/",
     "@elastic/elasticsearch": "npm:@elastic/elasticsearch@^9.2.0",
     "@google/genai": "npm:@google/genai@^1.34.0",
     "@orama/orama": "npm:@orama/orama@^3.1.18",
