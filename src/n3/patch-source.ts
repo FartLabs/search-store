@@ -1,5 +1,5 @@
 import { Store } from "n3";
-import type { Patch, PatchSink, PatchSource } from "#/rdf-patch/rdf-patch.ts";
+import type { Patch, PatchSource } from "#/rdf-patch/rdf-patch.ts";
 import { createN3Proxy } from "./proxy.ts";
 
 /**
@@ -13,7 +13,7 @@ interface PatchQueueItem {
 /**
  * N3PatchSource is a source that produces patches from an N3 store.
  */
-export class N3PatchSource implements PatchSource, PatchSink {
+export class N3PatchSource implements PatchSource {
   public readonly store: Store;
   private processing = Promise.resolve();
   private patchQueue: Array<PatchQueueItem> = [];
