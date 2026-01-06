@@ -18,23 +18,31 @@ export interface Patch {
 }
 
 /**
- * PatchSink is a sink that consumes patches.
+ * PatchHandler handles patches.
  */
-export interface PatchSink {
+export interface PatchHandler {
   /**
-   * patch applies a patch to the sink.
+   * patch handles a patch.
    */
   patch(patch: Patch): Promise<void>;
 }
 
 /**
- * PatchSource is a source that produces patches.
+ * PatchPusher pushes a series of patches.
  */
-export interface PatchSource {
+export interface PatchPusher {
   /**
-   * subscribe subscribes to a stream of patches.
-   *
-   * @returns A function to unsubscribe.
+   * push pushes a series of patches.
    */
-  subscribe(fn: (patch: Patch) => void): () => void;
+  push(patches: Patch[]): Promise<void>;
+}
+
+/**
+ * PatchPuller pulls a series of patches.
+ */
+export interface PatchPuller {
+  /**
+   * pull pulls a series of patches.
+   */
+  pull(): Promise<Patch[]>;
 }
