@@ -1,46 +1,49 @@
 import type * as rdfjs from "@rdfjs/types";
 import * as oxigraph from "oxigraph";
-import { levenshteinDistance } from "@std/text/levenshtein-distance";
+import type { Quad, Store } from "oxigraph";
 import { skolemizeQuad } from "./skolem.ts";
 import type { Patch, PatchHandler, PatchPuller } from "./rdf-patch.ts";
 import type { RankedResult, SearchStore } from "./search-store.ts";
-import starWarsTtl from "./star-wars.ttl" with { type: "text" };
 
 /**
- * ExampleSearchStore searches an example document store.
+ * Local copy of createOxigraphProxy that emits patches on add/delete.
  */
-export class ExampleSearchStore implements SearchStore {
-  public constructor(
-    private readonly dataFactory: rdfjs.DataFactory,
-    private readonly documentStore: typeof exampleDocumentStore,
-  ) {}
+function createOxigraphProxy(
+  store: Store,
+  handler: PatchHandler,
+): Store {
+  return new Proxy(store, {
+    get(target: Store, prop: string | symbol, _receiver: unknown) {
+      // Intercept methods that modify the store
+      switch (prop) {
+        case "add": {
+          return (quad: Quad) => {
+            const result = target.add(quad);
+            handler.patch({
+              insertions: [quad],
+              deletions: [],
+            });
+            return result;
+          };
+        }
 
-  public search(
-    query: string,
-    limit = 10,
-  ): Promise<RankedResult<rdfjs.NamedNode>[]> {
-    let maxDistance = 1;
-    const rankedNodes: Map<string, number> = new Map();
-    for (const document of this.documentStore.values()) {
-      const distance = levenshteinDistance(query, document.object);
-      const totalDistance = distance + (rankedNodes.get(document.subject) ?? 0);
-      rankedNodes.set(document.subject, totalDistance);
-      maxDistance = Math.max(maxDistance, totalDistance);
-    }
+        case "delete": {
+          return (quad: Quad) => {
+            const result = target.delete(quad);
+            handler.patch({
+              insertions: [],
+              deletions: [quad],
+            });
+            return result;
+          };
+        }
 
-    const rankedResults = rankedNodes
-      .entries()
-      .toArray()
-      .toSorted((a, b) => a[1] - b[1])
-      .slice(0, limit)
-      .map(([subject, distance], index) => ({
-        rank: index + 1,
-        score: 1 - (distance / maxDistance),
-        value: this.dataFactory.namedNode(subject),
-      }));
-
-    return Promise.resolve(rankedResults);
-  }
+        default: {
+          return (target as Store)[prop as keyof Store];
+        }
+      }
+    },
+  });
 }
 
 interface ExampleDocument {
@@ -55,27 +58,56 @@ interface ExampleDocument {
  */
 class ExamplePatchHandler implements PatchHandler {
   public constructor(
-    private readonly documentStore: typeof exampleDocumentStore,
+    private readonly documentStore: Map<string, ExampleDocument>,
   ) {}
 
-  public async patch(patch: Patch): Promise<void> {
-    for (const deletion of patch.deletions) {
-      const documentId = await skolemizeQuad(deletion);
-      this.documentStore.delete(documentId);
-    }
+  private readonly pending = new Set<Promise<void>>();
 
-    for (const insertion of patch.insertions) {
-      const documentId = await skolemizeQuad(insertion);
-      this.documentStore.set(documentId, {
-        id: documentId,
-        subject: insertion.subject.value,
-        predicate: insertion.predicate.value,
-        object: insertion.object.value,
-      });
+  private async addQuad(quad: rdfjs.Quad): Promise<void> {
+    const documentId = await skolemizeQuad(quad);
+    this.documentStore.set(documentId, {
+      id: documentId,
+      subject: quad.subject.value,
+      predicate: quad.predicate.value,
+      object: quad.object.value,
+    });
+  }
+
+  private async deleteQuad(quad: rdfjs.Quad): Promise<void> {
+    const documentId = await skolemizeQuad(quad);
+    this.documentStore.delete(documentId);
+  }
+
+  public patch(patch: Patch): Promise<void> {
+    const promise = (async () => {
+      await Promise.all(
+        patch.deletions.map((deletion) => this.deleteQuad(deletion)),
+      );
+      await Promise.all(
+        patch.insertions.map((insertion) => this.addQuad(insertion)),
+      );
+    })();
+
+    // const promise = Promise.all(patch.deletions.map((q) => this.deleteQuad(q)))
+    //   .then(() => Promise.all(patch.insertions.map((q) => this.addQuad(q))));
+
+    this.pending.add(promise);
+    promise.finally(() => this.pending.delete(promise));
+
+    return promise;
+  }
+
+  public async waitForIdle(): Promise<void> {
+    if (this.pending.size === 0) {
+      return;
     }
+    await Promise.all(Array.from(this.pending));
   }
 }
 
+/**
+ * ExamplePatchPuller pulls patches from the oxigraph store.
+ */
 class ExamplePatchPuller implements PatchPuller {
   public constructor(private readonly oxigraphStore: oxigraph.Store) {}
 
@@ -111,14 +143,53 @@ async function pull(handler: PatchHandler, puller: PatchPuller): Promise<void> {
   }
 }
 
-const exampleOxigraphStore = new oxigraph.Store();
-exampleOxigraphStore.load(starWarsTtl, { format: "ttl" });
+/**
+ * ExampleSearchStore searches the example document store.
+ */
+export class ExampleSearchStore implements SearchStore {
+  public constructor(
+    private readonly dataFactory: rdfjs.DataFactory,
+    private readonly documentStore: Map<string, ExampleDocument>,
+  ) {}
 
+  public search(
+    _query: string,
+    limit = 10,
+  ): Promise<RankedResult<rdfjs.NamedNode>[]> {
+    const rankedResults = Array.from(this.documentStore.values())
+      .slice(0, limit)
+      .map((document, index) => ({
+        rank: index + 1,
+        score: 0,
+        value: this.dataFactory.namedNode(document.subject),
+      }));
+
+    return Promise.resolve(rankedResults);
+  }
+}
+
+const exampleOxigraphStore = new oxigraph.Store();
 const exampleDocumentStore = new Map<string, ExampleDocument>();
 const examplePatchHandler = new ExamplePatchHandler(exampleDocumentStore);
-const examplePatchPuller = new ExamplePatchPuller(exampleOxigraphStore);
 
+// Wrap store with proxy so add/delete emit patches
+const proxiedStore = createOxigraphProxy(
+  exampleOxigraphStore,
+  examplePatchHandler,
+);
+
+// Optionally still wire puller if you want pull-based patches as well
+const examplePatchPuller = new ExamplePatchPuller(exampleOxigraphStore);
 await pull(examplePatchHandler, examplePatchPuller);
+
+const subject = oxigraph.namedNode("https://example.org/planet/Hoth");
+const predicate = oxigraph.namedNode("https://example.org/property/name");
+const object = oxigraph.literal("Hoth"); // string literal passes filterStringLiteral
+const quad = oxigraph.quad(subject, predicate, object);
+
+proxiedStore.add(quad);
+await examplePatchHandler.waitForIdle();
+console.table(Array.from(exampleDocumentStore.values()));
 
 const exampleSearchStore = new ExampleSearchStore(
   oxigraph as rdfjs.DataFactory,
