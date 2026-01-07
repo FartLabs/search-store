@@ -18,13 +18,10 @@ export interface Patch {
 }
 
 /**
- * PatchHandler handles patches.
+ * PatchProxy proxies a target object with a patch pusher.
  */
-export interface PatchHandler {
-  /**
-   * patch handles a patch.
-   */
-  patch(patch: Patch): Promise<void>;
+export interface PatchProxy<T> {
+  proxy(target: T, pusher: PatchPusher): T;
 }
 
 /**
@@ -34,7 +31,7 @@ export interface PatchPusher {
   /**
    * push pushes a series of patches.
    */
-  push(patches: Patch[]): Promise<void>;
+  push(...patches: Patch[]): void;
 }
 
 /**
@@ -44,5 +41,5 @@ export interface PatchPuller {
   /**
    * pull pulls a series of patches.
    */
-  pull(): Promise<Patch[]>;
+  pull(): Patch[];
 }

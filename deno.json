@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "example": "deno -A --unstable-raw-imports ./src/rdf-patch/example.ts",
+    "example": "deno -A --unstable-raw-imports ./src/example.ts",
     "test": "deno test -A",
     "fmt": "deno fmt",
     "lint": "deno lint",
@@ -11,7 +11,6 @@
   },
   "imports": {
     "#/": "./src/",
-    "@elastic/elasticsearch": "npm:@elastic/elasticsearch@^9.2.0",
     "@google/genai": "npm:@google/genai@^1.34.0",
     "@orama/orama": "npm:@orama/orama@^3.1.18",
     "@orama/plugin-data-persistence": "npm:@orama/plugin-data-persistence@^3.1.18",
