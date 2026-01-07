@@ -1,4 +1,10 @@
 {
+  "name": "@fartlabs/search-store",
+  "version": "0.0.1",
+  "exports": {
+    ".": "./src/mod.ts",
+    "./n3": "./src/n3.ts"
+  },
   "tasks": {
     "example": "deno -A --unstable-raw-imports ./examples/solar-system/main.ts",
     "test": "deno test -A",
