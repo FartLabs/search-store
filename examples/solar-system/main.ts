@@ -1,9 +1,9 @@
 import { DataFactory, Store } from "n3";
 import { QueryEngine } from "@comunica/query-sparql-rdfjs-lite";
-import { ZeroEmbedder } from "./embedder.ts";
+import { proxyN3 } from "#/n3.ts";
 import { createOrama, OramaSearchStore } from "./orama.ts";
-import { proxyN3 } from "./n3.ts";
-import solarSytemSparql from "./solar-system.sparql" with { type: "text" };
+import { ZeroEmbedder } from "./embedder.ts";
+import solarSystemSparql from "./solar-system.sparql" with { type: "text" };
 
 // Create a text embedder.
 const vectorSize = 1;
@@ -26,7 +26,7 @@ const patchProxy = proxyN3(n3Store, searchStore);
 const queryEngine = new QueryEngine();
 
 // Ensure the query executes.
-const queryResult = await queryEngine.query(solarSytemSparql, {
+const queryResult = await queryEngine.query(solarSystemSparql, {
   sources: [patchProxy],
 });
 await queryResult.execute();
@@ -35,7 +35,8 @@ await queryResult.execute();
 await searchStore.pull();
 
 // Search the search store.
-const rankedResults = await searchStore.search(
-  "What is the name of the planet with the largest radius?",
-);
-console.log({ rankedResults });
+const query = "What is the name of the planet with the largest radius?";
+console.log(`> ${query}`);
+
+const rankedResults = await searchStore.search(query);
+console.table(rankedResults);

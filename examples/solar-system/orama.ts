@@ -1,9 +1,9 @@
 import type * as rdfjs from "@rdfjs/types";
 import { create, insertMultiple, removeMultiple, search } from "@orama/orama";
+import type { SearchResult, SearchStore } from "#/search-store.ts";
+import type { Patch, PatchHandler } from "#/rdf-patch.ts";
+import { skolemizeQuad } from "#/skolem.ts";
 import type { Embedder } from "./embedder.ts";
-import type { RankedResult, SearchStore } from "./search-store.ts";
-import type { Patch, PatchHandler } from "./rdf-patch.ts";
-import { skolemizeQuad } from "./skolem.ts";
 
 /**
  * Orama is the type of our Orama instance.
@@ -69,7 +69,8 @@ export interface OramaSearchStoreOptions {
  *
  * @see https://docs.orama.com/docs/cloud/performing-search/introduction
  */
-export class OramaSearchStore implements SearchStore, PatchHandler {
+export class OramaSearchStore
+  implements SearchStore<rdfjs.NamedNode>, PatchHandler {
   private readonly patchQueue: Patch[] = [];
 
   public constructor(private readonly options: OramaSearchStoreOptions) {}
@@ -89,7 +90,7 @@ export class OramaSearchStore implements SearchStore, PatchHandler {
   public async search(
     query: string,
     limit: number = 10,
-  ): Promise<RankedResult<rdfjs.NamedNode>[]> {
+  ): Promise<SearchResult<rdfjs.NamedNode>[]> {
     if (!query || query.trim().length === 0) {
       return [];
     }
@@ -106,7 +107,7 @@ export class OramaSearchStore implements SearchStore, PatchHandler {
       return [];
     }
 
-    return searchResult.groups.map((group, index) => {
+    return searchResult.groups.map((group) => {
       const subject = group.values[0];
       if (typeof subject !== "string") {
         throw new Error("Subject is not a string");
@@ -119,7 +120,6 @@ export class OramaSearchStore implements SearchStore, PatchHandler {
 
       const value = this.options.dataFactory.namedNode(subject);
       return {
-        rank: index + 1,
         score: hit.score,
         value,
       };
