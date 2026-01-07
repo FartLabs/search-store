@@ -1,8 +1,7 @@
-import * as rdfjs from "@rdfjs/types";
-import * as oxigraph from "oxigraph";
+import { DataFactory as N3DataFactory, Store } from "n3";
 import { RandomEmbedder } from "./embedder.ts";
 import { createOrama, OramaSearchStore } from "./orama.ts";
-import { proxyOxigraph } from "./oxigraph.ts";
+import { proxyN3 } from "./n3.ts";
 import solarSytemSparql from "./solar-system.sparql" with { type: "text" };
 
 const vectorSize = 128;
@@ -10,11 +9,14 @@ const orama = createOrama(vectorSize);
 
 const embedder = new RandomEmbedder(vectorSize);
 
-const dataFactory = oxigraph as rdfjs.DataFactory;
-const searchStore = new OramaSearchStore({ dataFactory, embedder, orama });
+const searchStore = new OramaSearchStore({
+  dataFactory: N3DataFactory,
+  embedder,
+  orama,
+});
 
-const oxigraphStore = new oxigraph.Store();
-const patchProxy = proxyOxigraph(oxigraphStore, searchStore);
+const n3Store = new Store();
+const patchProxy = proxyN3(n3Store, searchStore);
 
 patchProxy.update(solarSytemSparql);
 
