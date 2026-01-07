@@ -66,6 +66,7 @@ export class N3PatchProxy implements PatchProxy<Store> {
               if (filterStringLiteral(quad)) {
                 pusher.push({ insertions: [quad], deletions: [] });
               }
+
               return result;
             };
           }
@@ -73,10 +74,11 @@ export class N3PatchProxy implements PatchProxy<Store> {
           case "addQuads": {
             return (quads: rdfjs.Quad[]) => {
               const result = target.addQuads(quads);
-              const stringLiteralQuads = quads.filter(filterStringLiteral);
-              if (stringLiteralQuads.length > 0) {
-                pusher.push({ insertions: stringLiteralQuads, deletions: [] });
+              const insertions = quads.filter((q) => filterStringLiteral(q));
+              if (insertions.length > 0) {
+                pusher.push({ insertions, deletions: [] });
               }
+
               return result;
             };
           }
@@ -87,6 +89,7 @@ export class N3PatchProxy implements PatchProxy<Store> {
               if (filterStringLiteral(quad)) {
                 pusher.push({ insertions: [], deletions: [quad] });
               }
+
               return result;
             };
           }
@@ -94,10 +97,11 @@ export class N3PatchProxy implements PatchProxy<Store> {
           case "removeQuads": {
             return (quads: rdfjs.Quad[]) => {
               const result = target.removeQuads(quads);
-              const stringLiteralQuads = quads.filter(filterStringLiteral);
-              if (stringLiteralQuads.length > 0) {
-                pusher.push({ insertions: [], deletions: stringLiteralQuads });
+              const deletions = quads.filter((q) => filterStringLiteral(q));
+              if (deletions.length > 0) {
+                pusher.push({ insertions: [], deletions: deletions });
               }
+
               return result;
             };
           }
