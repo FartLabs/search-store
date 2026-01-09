@@ -72,15 +72,15 @@ export interface OramaSearchStoreOptions {
 export class OramaSearchStore implements SearchStore<rdfjs.NamedNode> {
   public constructor(private readonly options: OramaSearchStoreOptions) {}
 
-  public async addQuads(quads: rdfjs.Quad[]): Promise<void> {
-    const insertedDocuments = await Promise.all(
+  private async addQuads(quads: rdfjs.Quad[]): Promise<void> {
+    const insertedDocumentIds = await Promise.all(
       quads.map((quad) => generateOramaDocument(this.options.embedder, quad)),
     );
 
-    await insertMultiple(this.options.orama, insertedDocuments);
+    await insertMultiple(this.options.orama, insertedDocumentIds);
   }
 
-  public async removeQuads(quads: rdfjs.Quad[]): Promise<void> {
+  private async removeQuads(quads: rdfjs.Quad[]): Promise<void> {
     const deletedDocumentIds = await Promise.all(
       quads.map((quad) => skolemizeQuad(quad)),
     );

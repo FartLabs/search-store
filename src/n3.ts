@@ -146,7 +146,9 @@ export function proxyN3(target: Store, handler: PatchHandlerSync): Store {
 /**
  * connectSearchStoreToN3Store connects a search store to an N3 store.
  *
- * It returns a proxied store and a function to apply patches to the search store.
+ * It returns a proxied store and a `sync` function to apply patches to the search store.
+ *
+ * The `sync` function indexes pending patches by inserting and deleting documents.
  */
 export function connectSearchStoreToN3Store<T>(
   searchStore: SearchStore<T>,
