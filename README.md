@@ -1,5 +1,9 @@
 # search-store
 
+[![JSR](https://jsr.io/badges/@fartlabs/search-store)](https://jsr.io/@fartlabs/search-store)
+[![JSR score](https://jsr.io/badges/@fartlabs/search-store/score)](https://jsr.io/@fartlabs/search-store/score)
+[![GitHub Actions](https://github.com/EthanThatOneKid/search-store/actions/workflows/check.yaml/badge.svg)](https://github.com/EthanThatOneKid/search-store/actions/workflows/check.yaml)
+
 RDF Store extended with cutting-edge search capabilities.
 
 ## Overview
