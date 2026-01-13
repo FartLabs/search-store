@@ -150,8 +150,8 @@ export function proxyN3(target: Store, handler: PatchHandlerSync): Store {
  *
  * The `sync` function indexes pending patches by inserting and deleting documents.
  */
-export function connectSearchStoreToN3Store<T>(
-  searchStore: SearchStore<T>,
+export function connectSearchStoreToN3Store(
+  searchStore: PatchHandler,
   n3Store: Store,
 ): { store: Store; sync: () => Promise<void> } {
   // Connect the RDF store to the search store.
